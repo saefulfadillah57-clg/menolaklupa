@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#24180f">
+  <meta name="description" content="Pengalaman pembelajaran sejarah lokal Geger Cilegon 1888 melalui rekonstruksi 3D dan Augmented Reality.">
+  <title>MENOLAK LUPA 1888 — Geger Cilegon</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://unpkg.com">
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="#" aria-label="Menolak Lupa 1888">
+    <span class="seal">1888</span>
+    <span><small>REKONSTRUKSI SEJARAH DIGITAL</small><strong>MENOLAK LUPA <em>1888</em></strong></span>
+  </a>
+  <span class="header-tag">GEGER CILEGON · BANTEN</span>
+</header>
+
+<main>
+  <section class="hero">
+    <p class="eyebrow">SEJARAH LOKAL · PENGALAMAN WEBAR</p>
+    <h1>Menelusuri jejak sejarah,<br><em>menjaga ingatan.</em></h1>
+    <p class="hero-copy">Jelajahi delapan ruang cerita Geger Cilegon 1888 melalui rekonstruksi 3D. Putar model, amati detail, dan—pada perangkat yang mendukung—hadirkan objek dalam ruang sekitar melalui Augmented Reality.</p>
+    <a class="primary-link" href="#perjalanan">Mulai perjalanan <span>↓</span></a>
+  </section>
+
+  <section id="perjalanan" class="journey">
+    <div class="section-heading">
+      <div><p class="eyebrow">JALUR CERITA</p><h2>Delapan ruang sejarah</h2></div>
+      <p>Pilih adegan untuk membuka model 3D dan membaca pengantarnya.</p>
+    </div>
+    <nav id="scene-nav" class="scene-nav" aria-label="Pilih adegan"></nav>
+  </section>
+
+  <section class="viewer-panel" aria-live="polite">
+    <div class="viewer-heading">
+      <div>
+        <p id="scene-kicker" class="eyebrow">ADEGAN 01</p>
+        <h2 id="scene-title">Banten Menjelang 1888</h2>
+        <p id="scene-subtitle" class="muted">Prolog · Kehidupan masyarakat</p>
+      </div>
+      <span id="model-status" class="status">Menyiapkan model…</span>
+    </div>
+
+    <div class="model-stage" id="model-stage">
+      <div id="model-host" class="model-host" aria-label="Penampil model 3D"></div>
+      <div id="viewer-message" class="viewer-message">Menyiapkan penampil 3D…</div>
+    </div>
+
+    <div class="model-toolbar">
+      <label class="model-select-label" for="model-select">Model dalam adegan ini</label>
+      <select id="model-select" aria-label="Pilih model dalam adegan"></select>
+      <div class="toolbar-actions">
+        <button id="reset-camera" class="secondary-button">Atur ulang tampilan</button>
+        <span class="hint">Geser untuk memutar · Cubit/scroll untuk zoom</span>
+      </div>
+    </div>
+
+    <div class="story-panel">
+      <div><p class="eyebrow">TENTANG ADEGAN</p><h3 id="story-title">Banten Menjelang 1888</h3></div>
+      <p id="story-text"></p>
+    </div>
+    <div class="scene-pagination">
+      <button id="prev-scene" class="secondary-button">← Adegan sebelumnya</button>
+      <span id="scene-count">01 / 08</span>
+      <button id="next-scene" class="primary-button">Adegan berikutnya →</button>
+    </div>
+  </section>
+
+  <section class="notice">
+    <strong>Catatan penggunaan WebAR</strong>
+    <p>Mode AR memerlukan situs HTTPS, browser dan perangkat yang kompatibel. Pada Android, dukungan bergantung pada ARCore dan layanan Google terkait. Jika AR tidak tersedia, model tetap dapat dijelajahi dalam penampil 3D. Pratinjau dari file lokal tidak menjamin tombol AR dapat digunakan.</p>
+  </section>
+
+  <section class="notice reconstruction">
+    <strong>Catatan sejarah</strong>
+    <p>Model 3D dan visual dalam proyek ini merupakan rekonstruksi artistik untuk media pembelajaran, bukan bukti visual autentik atau representasi pasti rupa tokoh dan lokasi sejarah. Narasi final perlu diselaraskan dengan sumber kajian sejarah yang digunakan proyek.</p>
+  </section>
+</main>
+
+<footer><strong>MENOLAK LUPA 1888</strong><span>Media pembelajaran sejarah lokal · Cilegon, Banten</span><span>Menelusuri jejak sejarah, memahami perjuangan, menjaga ingatan.</span></footer>
+<script src="app.js"></script>
+</body>
+</html>
