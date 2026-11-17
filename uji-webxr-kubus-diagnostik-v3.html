@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#101827">
+<title>Diagnostik WebXR – Kubus 3D V3</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,Arial,sans-serif;background:#101827;color:#f8fafc}
+main{max-width:760px;margin:auto;padding:22px}h1{font-size:23px;margin:0 0 10px}p{line-height:1.5;color:#cbd5e1}
+button{width:100%;border:0;border-radius:12px;padding:16px;background:#16a34a;color:white;font-weight:750;font-size:17px;margin:12px 0}
+#status{white-space:pre-wrap;line-height:1.5;background:#1e293b;border:1px solid #475569;border-radius:12px;padding:14px;font-size:14px}
+#log{white-space:pre-wrap;color:#cbd5e1;font:12px/1.5 ui-monospace,monospace;margin-top:10px}
+body.xr-active{background:transparent!important}body.xr-active main{padding:8px;max-width:none;background:transparent!important;pointer-events:none}body.xr-active h1,body.xr-active main>p{display:none}body.xr-active button{pointer-events:auto;width:auto;padding:8px 12px;font-size:13px;margin:0 0 6px}body.xr-active #status{background:rgba(15,23,42,.78);border-color:rgba(255,255,255,.3);font-size:12px;max-width:95vw}body.xr-active #log{display:none}
+</style>
+</head>
+<body>
+<main>
+<h1>Diagnostik WebXR – Kubus 3D V3</h1>
+<p>Uji ini tidak memakai Hit Test. Kubus ditempatkan 1,5 meter di depan posisi awal perangkat. Gunakan Chrome melalui HTTPS.</p>
+<button id="start">MULAI UJI AR</button>
+<div id="status">Memeriksa dukungan WebXR…</div>
+<div id="log"></div>
+<p>Jika berhasil, kubus biru kehijauan akan terlihat di depan kamera. Akhiri sesi dengan tombol kembali perangkat.</p>
+</main>
+<script>
+const statusEl=document.querySelector('#status'),logEl=document.querySelector('#log'),startBtn=document.querySelector('#start');
+let xrSession=null,rafCount=0,drawCount=0;
+function status(s){statusEl.textContent=s}
+function log(s){logEl.textContent+=s+'\n'}
+function shader(gl,type,src){const sh=gl.createShader(type);gl.shaderSource(sh,src);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw Error('Shader: '+gl.getShaderInfoLog(sh));return sh}
+function makeProgram(gl){const vs=shader(gl,gl.VERTEX_SHADER,'attribute vec3 p; uniform mat4 mvp; void main(){gl_Position=mvp*vec4(p,1.0);}');const fs=shader(gl,gl.FRAGMENT_SHADER,'precision mediump float; void main(){gl_FragColor=vec4(0.05,0.9,1.0,1.0);}');const pr=gl.createProgram();gl.attachShader(pr,vs);gl.attachShader(pr,fs);gl.linkProgram(pr);if(!gl.getProgramParameter(pr,gl.LINK_STATUS))throw Error('Link program: '+gl.getProgramInfoLog(pr));return pr}
+function mul(a,b){const o=new Float32Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++)o[c*4+r]=a[r]*b[c*4]+a[4+r]*b[c*4+1]+a[8+r]*b[c*4+2]+a[12+r]*b[c*4+3];return o}
+function model(){return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,-1.5,1])}
+async function start(){startBtn.disabled=true;logEl.textContent='';
+ try{
+  if(!navigator.xr)throw Error('navigator.xr tidak tersedia.');
+  const supported=await navigator.xr.isSessionSupported('immersive-ar');log('immersive-ar supported: '+supported);if(!supported)throw Error('immersive-ar tidak didukung.');
+  status('1/4 Meminta sesi immersive-ar…');
+  xrSession=await navigator.xr.requestSession('immersive-ar',{optionalFeatures:['dom-overlay'],domOverlay:{root:document.body}});
+  xrSession.addEventListener('end',()=>{document.body.classList.remove('xr-active');startBtn.disabled=false;status('Sesi AR berakhir.');xrSession=null;});
+  document.body.classList.add('xr-active');
+  status('2/4 Sesi AR aktif. Membuat konteks WebGL…');
+  const canvas=document.createElement('canvas');
+  const gl=canvas.getContext('webgl',{xrCompatible:true,alpha:true,antialias:true,depth:true,stencil:false,preserveDrawingBuffer:false});
+  if(!gl)throw Error('Konteks WebGL tidak berhasil dibuat.');
+  await gl.makeXRCompatible();log('WebGL context: OK; makeXRCompatible: OK');
+  const layer=new XRWebGLLayer(xrSession,gl,{alpha:true,depth:true,antialias:true});
+  xrSession.updateRenderState({baseLayer:layer});
+  const refSpace=await xrSession.requestReferenceSpace('local');log('XRWebGLLayer dan local reference space: OK');
+  const program=makeProgram(gl);const vertices=new Float32Array([
+   -.25,-.25,.25, .25,-.25,.25, .25,.25,.25, -.25,.25,.25,
+   -.25,-.25,-.25, .25,-.25,-.25, .25,.25,-.25, -.25,.25,-.25
+  ]);
+  const indices=new Uint16Array([0,1,2,0,2,3, 5,4,7,5,7,6, 4,0,3,4,3,7, 1,5,6,1,6,2, 3,2,6,3,6,7, 4,5,1,4,1,0]);
+  const vb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,vertices,gl.STATIC_DRAW);
+  const ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indices,gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(program,'p'),uMvp=gl.getUniformLocation(program,'mvp');
+  gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);
+  const mod=model();
+  status('3/4 Sesi AR aktif. Menunggu frame XR pertama…');
+  function onFrame(t,frame){
+   rafCount++;
+   try{
+    xrSession.requestAnimationFrame(onFrame);
+    const pose=frame.getViewerPose(refSpace);
+    if(!pose){if(rafCount===1)status('Frame XR diterima, tetapi pose kamera belum tersedia.');return;}
+    const framebuffer=layer.framebuffer;gl.bindFramebuffer(gl.FRAMEBUFFER,framebuffer);
+    gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    gl.useProgram(program);gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,3,gl.FLOAT,false,0,0);
+    for(const view of pose.views){const vp=layer.getViewport(view);gl.viewport(vp.x,vp.y,vp.width,vp.height);const viewMat=view.transform.inverse.matrix;const mvp=mul(view.projectionMatrix,mul(viewMat,mod));gl.uniformMatrix4fv(uMvp,false,mvp);gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);drawCount++;}
+    if(rafCount===1)status('4/4 FRAME XR DITERIMA. Pose kamera tersedia; kubus sedang dirender.');
+    if(rafCount===30)status('RENDER LOOP BERJALAN. Frame: '+rafCount+'; gambar kubus: '+drawCount+'. Jika kubus tidak terlihat, kirim screenshot ini.');
+   }catch(e){status('KESALAHAN DI DALAM FRAME XR:\n'+(e.name||'Error')+': '+e.message);log('Frame error: '+e.stack);}
+  }
+  xrSession.requestAnimationFrame(onFrame);
+ }catch(e){status('UJI GAGAL:\n'+(e.name||'Error')+': '+e.message);log(e.stack||String(e));startBtn.disabled=false;if(xrSession){try{await xrSession.end()}catch(_){}xrSession=null;document.body.classList.remove('xr-active');}}
+}
+startBtn.addEventListener('click',start);
+if(navigator.xr){navigator.xr.isSessionSupported('immersive-ar').then(v=>status(v?'immersive-ar terdeteksi. Tekan MULAI UJI AR.':'immersive-ar tidak didukung browser ini.')).catch(e=>status('Pemeriksaan gagal: '+e.message));}else status('navigator.xr tidak tersedia. Buka dengan Chrome melalui HTTPS.');
+</script>
+</body></html>
