@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="id"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Uji MindAR V3 - Krakatau 1883</title>
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101820;color:white;font-family:Arial}
+#overlay{position:fixed;inset:0;z-index:10;background:#101820;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+h1{font-size:30px}p{line-height:1.5;color:#ccd5dd;max-width:600px}
+button{border:0;border-radius:12px;padding:13px 18px;font-size:16px;font-weight:bold;background:#28c982;color:#071b13}
+#controls{display:none;position:fixed;z-index:20;top:12px;right:12px;gap:7px}#controls button{background:#111d;color:white;border:1px solid #aaa;padding:12px 16px}
+#status{position:fixed;z-index:30;bottom:12px;left:12px;right:12px;background:#000c;padding:12px;border-radius:10px;text-align:center;font-size:13px;line-height:1.4}
+#scale{display:none;position:fixed;z-index:20;top:62px;right:14px;background:#000b;padding:7px;border-radius:8px;font-size:12px}
+</style></head><body>
+<div id="overlay"><h1>MENOLAK LUPA 1888</h1><p>Uji WebAR MindAR V3 – Krakatau 1883.</p><p>Arahkan kamera ke gambar target. Gunakan tombol +/− atau cubit dua jari untuk mengatur ukuran model.</p><button id="start" disabled>MENYIAPKAN SISTEM…</button></div>
+<div id="controls"><button id="minus">−</button><button id="plus">+</button><button id="reset">Reset</button></div><div id="scale">Ukuran: 0.30×</div><div id="status">Memuat komponen WebAR…</div>
+<a-scene id="scene" mindar-image="imageTargetSrc: ./mindar/targets.mind; autoStart: false;" color-space="sRGB" renderer="colorManagement:true, physicallyCorrectLights:true" vr-mode-ui="enabled:false" device-orientation-permission-ui="enabled:false" embedded loading-screen="enabled:false" style="position:fixed;inset:0;width:100%;height:100%">
+<a-assets timeout="30000"><a-asset-item id="mdl" src="./assets/models/6.Krakatau_1883_LowPoly_Assemblr-compressed.glb"></a-asset-item></a-assets>
+<a-camera position="0 0 0" look-controls="enabled:false"></a-camera>
+<a-entity id="target" mindar-image-target="targetIndex:0"><a-gltf-model id="model" src="#mdl" position="0 0 0.05" rotation="0 0 0" scale="0.30 0.30 0.30"></a-gltf-model></a-entity>
+</a-scene>
+<script>
+(()=>{const s=document.querySelector('#scene'),b=document.querySelector('#start'),o=document.querySelector('#overlay'),t=document.querySelector('#target'),m=document.querySelector('#model'),st=document.querySelector('#status'),c=document.querySelector('#controls'),sl=document.querySelector('#scale');
+let ready=false,busy=false,sc=.30,pinchD=0,pinchS=.30;
+function setScale(v){sc=Math.max(.08,Math.min(1.2,v));m.setAttribute('scale',`${sc} ${sc} ${sc}`);sl.textContent=`Ukuran: ${sc.toFixed(2)}×`;}
+function dist(a,b){return Math.hypot(b.clientX-a.clientX,b.clientY-a.clientY);}
+function enable(){if(s.systems&&s.systems['mindar-image-system']){ready=true;b.disabled=false;b.textContent='MULAI SCAN AR';st.textContent='Sistem siap. Tekan MULAI SCAN AR.';}}
+s.addEventListener('loaded',enable);if(s.hasLoaded)enable();
+b.addEventListener('click',async()=>{if(!ready||busy)return;busy=true;b.disabled=true;b.textContent='MEMBUKA KAMERA…';st.textContent='Meminta akses kamera…';try{const ar=s.systems['mindar-image-system'];if(!ar||!ar.start)throw Error('Sistem MindAR belum siap');await ar.start();o.style.display='none';c.style.display='flex';sl.style.display='block';st.textContent='Kamera aktif. Arahkan ke gambar target Krakatau.';}catch(e){st.textContent='Gagal memulai AR: '+(e.name||'Error')+' — '+(e.message||e);b.disabled=false;b.textContent='COBA LAGI';busy=false;}});
+t.addEventListener('targetFound',()=>st.textContent='Target dikenali. Gunakan +/− atau cubit dua jari untuk mengatur ukuran.');
+t.addEventListener('targetLost',()=>st.textContent='Target kehilangan pelacakan. Arahkan kamera kembali ke gambar Krakatau.');
+document.querySelector('#plus').onclick=()=>setScale(sc+.05);document.querySelector('#minus').onclick=()=>setScale(sc-.05);document.querySelector('#reset').onclick=()=>setScale(.30);
+document.addEventListener('touchstart',e=>{if(e.touches.length===2){pinchD=dist(e.touches[0],e.touches[1]);pinchS=sc;}},{passive:true});
+document.addEventListener('touchmove',e=>{if(e.touches.length===2&&pinchD>0)setScale(pinchS*dist(e.touches[0],e.touches[1])/pinchD);},{passive:true});
+document.addEventListener('touchend',e=>{if(e.touches.length<2)pinchD=0;},{passive:true});
+m.addEventListener('model-error',()=>st.textContent='Model GLB gagal dimuat. Periksa lokasi aset.');
+})();
+</script></body></html>
