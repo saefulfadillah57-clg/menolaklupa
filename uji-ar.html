@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#24180f">
+<title>Uji AR - MENOLAK LUPA 1888</title>
+<script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:20px;font-family:Arial,sans-serif;color:#f8f3eb;background:#24180f}
+main{width:min(760px,100%);margin:0 auto}h1{margin:0 0 8px;font-size:25px}
+p{line-height:1.55;color:#e4d7c8}.panel{margin-top:16px;padding:16px;border:1px solid #6d5540;border-radius:14px;background:#332419}
+model-viewer{display:block;width:100%;height:min(62vh,520px);min-height:340px;background:#d9d2c7;border-radius:12px;overflow:hidden}
+#status{margin:12px 0;padding:11px 12px;border-radius:8px;color:#21170f;background:#f0dfb9;font-size:14px;line-height:1.45}
+.ar-button{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);border:0;border-radius:24px;padding:13px 18px;color:white;background:#8b3f20;font-weight:700;white-space:nowrap;box-shadow:0 2px 10px #0005}
+.small{font-size:13px;color:#d8c8b6}code{color:#ffe0a6;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<main>
+<h1>Uji AR MENOLAK LUPA 1888</h1>
+<p>Halaman pengujian terpisah untuk satu model rumah tradisional Banten. Halaman utama tidak diubah.</p>
+<div id="status">Menyiapkan penampil 3D…</div>
+<section class="panel">
+<model-viewer id="viewer"
+src="assets/models/1.Rumah_Tradisional_Banten_1888_LowPoly.glb"
+alt="Model 3D rumah tradisional Banten"
+camera-controls touch-action="pan-y" shadow-intensity="1" exposure="1"
+ar ar-modes="scene-viewer" ar-placement="floor" ar-scale="auto"
+loading="eager" reveal="auto">
+<button slot="ar-button" class="ar-button">UJI LIHAT DI RUANG SAYA</button>
+</model-viewer>
+<p class="small">Jika model terlihat di atas, pemuatan GLB di browser berhasil. Tekan tombol AR untuk menguji penyerahan model ke Scene Viewer.</p>
+</section>
+<section class="panel">
+<strong>Informasi diagnosis</strong>
+<p id="detail" class="small">Menunggu komponen model-viewer…</p>
+<p class="small">Model: <code>1.Rumah_Tradisional_Banten_1888_LowPoly.glb</code></p>
+<p class="small">Mode AR pada halaman ini sengaja dibatasi ke Scene Viewer agar hasil pengujian tidak bercampur dengan WebXR atau Quick Look.</p>
+</section>
+</main>
+<script type="module">
+const viewer=document.getElementById('viewer');
+const status=document.getElementById('status');
+const detail=document.getElementById('detail');
+await customElements.whenDefined('model-viewer');
+viewer.addEventListener('load',()=>{
+ status.textContent='BERHASIL: model GLB sudah dimuat di browser.';
+ detail.textContent='Pemuatan model berhasil. Sekarang tekan tombol UJI LIHAT DI RUANG SAYA untuk menguji Scene Viewer.';
+});
+viewer.addEventListener('error',(event)=>{
+ status.textContent='GAGAL: model tidak berhasil dimuat. Periksa alamat file GLB dan koneksi internet.';
+ detail.textContent='Peristiwa error pemuatan model: '+String(event.type);
+});
+viewer.addEventListener('ar-status',(event)=>{
+ detail.textContent='Status AR dari model-viewer: '+event.detail.status;
+});
+viewer.addEventListener('ar-tracking',(event)=>{
+ detail.textContent='Status pelacakan AR: '+event.detail.status;
+});
+</script>
+</body>
+</html>
